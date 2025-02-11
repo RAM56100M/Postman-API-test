@@ -1,0 +1,28 @@
+name: Postman API Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-html
+
+      - name: Run Postman Tests
+        run: newman run "API Testing - JSONPlaceholder.postman_collection.json" -r html --reporter-html-export report.html
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-test-report
+          path: report.html
