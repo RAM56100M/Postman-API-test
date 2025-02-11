@@ -15,27 +15,36 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Newman
-        run: npm install -g newman newman-reporter-html
+      - name: Install Newman and Allure Reporter
+        run: npm install -g newman newman-reporter-html newman-reporter-allure
 
-      - name: Run All Postman Collections
+      - name: Run All Postman Collections with Allure and HTML Reporters
         run: |
           shopt -s nullglob  # Avoid errors if no collections are found
           failed_tests=0
           for collection in *.postman_collection.json; do
             echo "✅ Running collection: $collection"
-            newman run "$collection" -r html --reporter-html-export "report-$(echo "$collection" | tr ' ' '_').html" || failed_tests=$((failed_tests+1))
+            newman run "$collection" \
+              -r html,allure \
+              --reporter-html-export "report-$(echo "$collection" | tr ' ' '_').html" || failed_tests=$((failed_tests+1))
           done
           if [[ $failed_tests -gt 0 ]]; then
             echo "❌ Some tests failed. Exiting with error."
             exit 1
           fi
 
-      - name: Upload Test Reports
+      - name: Generate Allure Report
+        run: |
+          npm install -g allure-commandline
+          allure generate allure-results --clean -o allure-report
+
+      - name: Upload Test Reports (HTML & Allure)
         uses: actions/upload-artifact@v4
         with:
           name: postman-test-reports
-          path: report-*.html
+          path: |
+            report-*.html
+            allure-report
 
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v4
@@ -45,7 +54,9 @@ jobs:
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: "Postman API Test Results"
-          body: "Attached are the latest Postman API test reports."
+          body: "Attached are the latest Postman API test reports, including Allure results."
           from: "Postman Tests <${{ secrets.GMAIL_USERNAME }}>"
           to: "rammarshivane@gmail.com, marshivaneram9944@gmail.com"
-          attachments: report-*.html
+          attachments: |
+            report-*.html
+            allure-report/*
