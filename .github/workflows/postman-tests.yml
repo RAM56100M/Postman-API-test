@@ -29,6 +29,7 @@ jobs:
 
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v4
+        
         with:
           server_address: smtp.gmail.com
           server_port: 465
