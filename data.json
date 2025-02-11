@@ -1,0 +1,14 @@
+[
+    {
+        "username": "eve.holt@reqres.in",
+        "password": "cityslicka"
+    },
+    {
+        "username": "wrong.user@example.com",
+        "password": "invalidpass"
+    },
+    {
+        "username": "test.user@demo.com",
+        "password": "Test@1234"
+    }
+]
