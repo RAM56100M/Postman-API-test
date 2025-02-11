@@ -42,13 +42,6 @@ jobs:
           name: postman-allure-report
           path: allure-report
 
-      - name: Deploy Allure Report to GitHub Pages (Optional)
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./allure-report
-
       - name: Send Email Notification with Allure Report
         uses: dawidd6/action-send-mail@v4
         with:
