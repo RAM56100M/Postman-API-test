@@ -18,14 +18,19 @@ jobs:
       - name: Install Newman
         run: npm install -g newman newman-reporter-html
 
-      - name: Run Postman Tests
-        run: newman run "API Testing - JSONPlaceholder.postman_collection.json" -r html --reporter-html-export report.html
+      - name: Run All Postman Collections
+        run: |
+          shopt -s nullglob  # Avoid errors if no collections are found
+          for collection in *.postman_collection.json; do
+            echo "✅ Running collection: $collection"
+            newman run "$collection" -r html --reporter-html-export "report-$(echo "$collection" | tr ' ' '_').html"
+          done
 
-      - name: Upload Test Report
+      - name: Upload Test Reports
         uses: actions/upload-artifact@v4
         with:
-          name: postman-test-report
-          path: report.html
+          name: postman-test-reports
+          path: report-*.html
 
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v4
@@ -33,9 +38,9 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.GMAIL_USERNAME }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}  # FIXED
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: "Postman API Test Results"
-          body: "Attached is the latest Postman API test report."
+          body: "Attached are the latest Postman API test reports."
           from: "Postman Tests <${{ secrets.GMAIL_USERNAME }}>"
           to: "rammarshivane@gmail.com, marshivaneram9944@gmail.com"
-          attachments: report.html
+          attachments: report-*.html
