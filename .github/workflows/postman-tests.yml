@@ -38,5 +38,5 @@ jobs:
           subject: "Postman API Test Results"
           body: "Attached is the latest Postman API test report."
           from: "Postman Tests <${{ secrets.GMAIL_USERNAME }}>"
-          to: "rammarshivane@gmail.com, marshivaneram9944@gmail.com"
+          to: "rammarshivane@gmail.com, marshivaneram9944@gmail.com, shubhangisamshete31@gmail.com"
           attachments: report.html
