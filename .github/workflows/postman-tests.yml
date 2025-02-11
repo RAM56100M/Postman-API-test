@@ -15,44 +15,49 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Newman
-        run: npm install -g newman newman-reporter-html
+      - name: Install Newman and Allure Reporter
+        run: npm install -g newman newman-reporter-allure allure-commandline
 
-      - name: Run Postman Tests
+      - name: Run All Postman Collections with Allure
         run: |
+          mkdir -p allure-results
           shopt -s nullglob  # Avoid errors if no collections are found
+          failed_tests=0
           for collection in *.postman_collection.json; do
             echo "✅ Running collection: $collection"
-            newman run "$collection" -r html --reporter-html-export "report-$(echo "$collection" | tr ' ' '_').html"
+            newman run "$collection" -r allure --reporter-allure-export "allure-results/allure-$(echo "$collection" | tr ' ' '_').json" || failed_tests=$((failed_tests+1))
           done
+          if [[ $failed_tests -gt 0 ]]; then
+            echo "❌ Some tests failed. Exiting with error."
+            exit 1
+          fi
 
       - name: Generate Allure Report
         run: |
-          mkdir -p allure-report
-          cp report-*.html allure-report/
+          allure generate allure-results -o allure-report --clean
 
-      - name: Compress Allure Report
-        run: zip -r allure-report.zip allure-report/
-
-      - name: Upload Test Reports
+      - name: Upload Allure Report
         uses: actions/upload-artifact@v4
         with:
-          name: postman-test-reports
-          path: |
-            report-*.html
-            allure-report.zip
+          name: postman-allure-report
+          path: allure-report
 
-      - name: Send Email Notification
+      - name: Deploy Allure Report to GitHub Pages (Optional)
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+
+      - name: Send Email Notification with Allure Report
         uses: dawidd6/action-send-mail@v4
         with:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "Postman API Test Results"
-          body: "Attached are the latest Postman API test reports, including Allure results."
+          subject: "Postman API Test Results - Allure Report"
+          body: "Attached is the latest interactive Allure report for Postman API tests."
           from: "Postman Tests <${{ secrets.GMAIL_USERNAME }}>"
           to: "rammarshivane@gmail.com, marshivaneram9944@gmail.com"
-          attachments: |
-            report-*.html
-            allure-report.zip
+          attachments: allure-report/index.html
