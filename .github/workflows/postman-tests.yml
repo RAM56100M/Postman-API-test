@@ -26,3 +26,16 @@ jobs:
         with:
           name: postman-test-report
           path: report.html
+
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}  # FIXED
+          subject: "Postman API Test Results"
+          body: "Attached is the latest Postman API test report."
+          from: "Postman Tests <${{ secrets.GMAIL_USERNAME }}>"
+          to: "rammarshivane@gmail.com, marshivaneram9944@gmail.com"
+          attachments: report.html
