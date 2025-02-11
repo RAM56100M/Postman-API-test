@@ -33,7 +33,7 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.GMAIL_USERNAME }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          password: ${{ secrets.API-Email-Password }}
           subject: "Postman API Test Results"
           body: "Attached is the latest Postman API test report."
           from: "Postman Tests <${{ secrets.GMAIL_USERNAME }}>"
